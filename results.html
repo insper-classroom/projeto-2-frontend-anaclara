@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stock API — Resultados</title>
+  <link rel="stylesheet" href="stocks.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a href="home.html" class="logo" aria-label="Início">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="10" width="3" height="10" rx="1.2" fill="#ffffff"/>
+          <rect x="9" y="6"  width="3" height="14" rx="1.2" fill="#dbeafe"/>
+          <rect x="15" y="3" width="3" height="17" rx="1.2" fill="#bfdbfe"/>
+        </svg>
+        <span class="logo-title">Stock API</span>
+      </a>
+      <form id="searchForm" class="search-compact" autocomplete="off" role="search">
+        <input id="searchInput" name="q" type="text" placeholder="Buscar ticker..." />
+        <button type="submit" aria-label="Buscar">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M21 21l-4.3-4.3m1.3-5.2a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"
+                  stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <main>
+    <section class="container">
+      <h1 id="title">Resultados</h1>
+      <div id="results" class="results"></div>
+      <p id="empty" class="empty" hidden>Nenhum resultado para sua busca.</p>
+    </section>
+  </main>
+
+  <script src="stocks.html"></script>
+</body>
+</html>

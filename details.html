@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stock API — Detalhe</title>
+  <link rel="stylesheet" href="stocks.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a href="home.html" class="logo" aria-label="Início">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="10" width="3" height="10" rx="1.2" fill="#ffffff"/>
+          <rect x="9" y="6"  width="3" height="14" rx="1.2" fill="#dbeafe"/>
+          <rect x="15" y="3" width="3" height="17" rx="1.2" fill="#bfdbfe"/>
+        </svg>
+        <span class="logo-title">Stock API</span>
+      </a>
+      <a class="back" href="javascript:history.back()">← Voltar</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="container">
+      <div class="head">
+        <h1 id="assetName">Detalhe da Ação</h1>
+        <p class="ticker" id="assetSymbol"></p>
+      </div>
+
+      <div class="specs">
+        <div class="spec"><span>Preço atual</span><strong id="price">—</strong></div>
+        <div class="spec"><span>Variação</span><strong id="change">—</strong></div>
+        <div class="spec"><span>Market Cap</span><strong id="mcap">—</strong></div>
+        <div class="spec"><span>Atualização</span><strong id="updated">—</strong></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-head">
+          <h2>Histórico</h2>
+          <div class="range">
+            <button data-range="7"  class="pill active">7d</button>
+            <button data-range="30" class="pill">30d</button>
+            <button data-range="90" class="pill">90d</button>
+          </div>
+        </div>
+        <canvas id="chart" width="900" height="360" aria-label="Gráfico de preço" role="img"></canvas>
+      </div>
+
+      <div class="actions">
+        <button id="addWatch" class="btn">Adicionar à Watchlist</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="stocks.html"></script>
+</body>
+</html>
