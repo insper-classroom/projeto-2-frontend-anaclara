@@ -1,0 +1,1 @@
+export const formatBRL = (n) => n.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
