@@ -1,19 +1,14 @@
-import { Link, useLocation } from "react-router-dom";
-import logo from "../assets/logo.svg";
-
+// src/components/Header.jsx
 export default function Header() {
-  const { pathname } = useLocation();
   return (
-    <header>
-      <div className="header-inner">
-        <Link to="/" className="logo" aria-label="FinScope Home">
-          <img src={logo} alt="" width={28} height={28} />
-          <span className="logo-title">FinScope</span>
-        </Link>
-        <nav className="nav">
-          <Link to="/resultados" className={`nav-link ${pathname==="/resultados" ? "active":""}`}>Buscar</Link>
-          <Link to="/watchlist" className={`nav-link ${pathname==="/watchlist" ? "active":""}`}>Watchlist</Link>
-        </nav>
+    <header className="app-header">
+      <div className="brand">
+        {/* Logo SVG minimalista (gráfico subindo) */}
+        <svg className="brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 18V6M7 18v-5M11 18V9M15 18v-7M19 18V4" strokeLinecap="round"/>
+          <polyline points="3,12 7,13 11,10 15,12 19,8" fill="none"/>
+        </svg>
+        <span className="brand-name">FinScope</span>
       </div>
     </header>
   );

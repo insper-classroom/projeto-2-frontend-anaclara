@@ -1,22 +1,35 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-export default function SearchBar({ placeholder="Buscar ticker..." }) {
+import { useState, useEffect } from "react";
+import searchIcon from "../assets/search.png";
+
+export default function SearchBar() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const defaultQ = params.get("q") || "";
+  const initial = params.get("q") || "";
+  const [q, setQ] = useState(initial);
+
+  useEffect(() => { setQ(initial); }, [initial]);
 
   function onSubmit(e) {
     e.preventDefault();
-    const q = new FormData(e.currentTarget).get("q").trim();
-    if (!q) return;
-    navigate(`/resultados?q=${encodeURIComponent(q)}`);
+    const query = q.trim();
+    if (!query) return;
+    navigate(`/resultados?q=${encodeURIComponent(query)}`);
   }
 
   return (
-    <form className="search" onSubmit={onSubmit} role="search">
-      <input name="q" defaultValue={defaultQ} placeholder={placeholder} />
-      <button type="submit" aria-label="Buscar">
-        <svg viewBox="0 0 24 24"><path d="M21 21l-4.3-4.3m1.3-5.2a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" stroke="white" strokeWidth="2" fill="none"/></svg>
-      </button>
+    <form className="searchbar" onSubmit={onSubmit}>
+      <div className="search-block">
+        <input
+          type="text"
+          placeholder="Buscar ticker..."
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        <button className="icon-btn" type="submit" aria-label="Buscar">
+          <img src={searchIcon} alt="" />
+        </button>
+      </div>
     </form>
   );
 }
