@@ -1,27 +1,50 @@
+import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { MOCK_RESULTS } from "../services/mock.js";
 import SearchBar from "../components/SearchBar.jsx";
 import BackButton from "../components/BackButton.jsx";
+import { searchSymbols } from "../services/api.js";
 
 export default function Results() {
   const [params] = useSearchParams();
-  const q = (params.get("q") || "").toLowerCase();
-  const data = MOCK_RESULTS.filter(r =>
-    r.symbol.toLowerCase().includes(q) || r.name.toLowerCase().includes(q)
-  );
+  const q = (params.get("q") || "").trim();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      if (!q) { setItems([]); return; }
+      setLoading(true); setErr("");
+      try {
+        const data = await searchSymbols(q, 12);
+        if (!cancelled) setItems(data.items || []);
+      } catch (e) {
+        if (!cancelled) setErr(e.message || "Falha ao buscar");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    run();
+    return () => { cancelled = true; };
+  }, [q]);
 
   return (
     <div className="page-wrapper">
-      <section className="page centered">
+      <section className="page centered vh-center">
         <div className="stack-narrow">
           <h2 className="title">
             Resultados {q && <>para ‘<span className="highlight">{q}</span>’</>}
           </h2>
+
           <SearchBar />
 
+          {loading && <p className="muted">Buscando…</p>}
+          {err && <p className="muted" style={{color:"#b91c1c"}}>{err}</p>}
+
           <div className="list">
-            {data.map(d => (
-              <article key={d.symbol} className="card">
+            {items.map(d => (
+              <article key={`${d.symbol}-${d.exchange}`} className="card">
                 <div className="card-head">
                   <h3 className="ticker">{d.symbol}</h3>
                   <span className="muted">{d.exchange}</span>
@@ -30,8 +53,11 @@ export default function Results() {
                 <Link className="btn-link" to={`/detalhe/${d.symbol}`}>Ver detalhes</Link>
               </article>
             ))}
-            {data.length === 0 && <p className="empty">Nenhum resultado.</p>}
           </div>
+
+          {!loading && !err && items.length === 0 && q && (
+            <p className="muted">Nenhum resultado.</p>
+          )}
         </div>
       </section>
 

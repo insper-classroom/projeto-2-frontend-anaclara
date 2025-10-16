@@ -10,7 +10,7 @@ export default function Home() {
       <section className="page centered vh-center">
         <div className="stack-narrow home-hero">
           <h1 className="hero hero-centered">
-            Pesquise ações, estabeleca metas<br/>e visualize oportunidades em tempo real.
+            Pesquise ações, estabeleça metas<br/>e visualize oportunidades em tempo real.
           </h1>
 
           <SearchBar />

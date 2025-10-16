@@ -1,10 +1,31 @@
-const BASE = import.meta.env.VITE_API_BASE_URL;
+// src/services/api.js
+const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000/api";
 
-export const api = {
-  search: (q) => fetch(`${BASE}/api/external/search?q=${encodeURIComponent(q)}`).then(r=>r.json()),
-  quote:  (s) => fetch(`${BASE}/api/external/quote/${encodeURIComponent(s)}`).then(r=>r.json()),
-  listWatch: () => fetch(`${BASE}/api/watchlist/`).then(r=>r.json()),
-  addWatch: (body) => fetch(`${BASE}/api/watchlist/`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(r=>r.json()),
-  patchWatch: (id, body) => fetch(`${BASE}/api/watchlist/${id}/`, {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(r=>r.json()),
-  delWatch: (id) => fetch(`${BASE}/api/watchlist/${id}/`, {method:"DELETE"}),
-};
+async function http(path, opts) {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: { "Accept": "application/json" },
+    ...opts,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const msg = body.detail || res.statusText || "Erro de rede";
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+export async function searchSymbols(q, limit = 10) {
+  if (!q?.trim()) return { items: [] };
+  return http(`/stocks/search?q=${encodeURIComponent(q)}&limit=${limit}`);
+}
+
+export async function getDetails(symbol) {
+  return http(`/stocks/${encodeURIComponent(symbol)}/details`);
+}
+
+export async function getHistoryEOD(symbol, params = {}) {
+  const qs = new URLSearchParams(params);
+  return http(`/stocks/${encodeURIComponent(symbol)}/history/eod?${qs}`);
+}
+
+// (se for integrar watchlist via backend depois, colocamos aqui também)

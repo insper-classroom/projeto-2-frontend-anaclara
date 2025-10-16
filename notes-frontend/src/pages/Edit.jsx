@@ -39,6 +39,8 @@ export default function Edit() {
           <form id="edit-form" onSubmit={onSubmit} className="form">
             <label>Símbolo</label>
             <input value={symbol} readOnly />
+            <label>Preço Atual</label>
+            <input value={symbol} readOnly />
             <label>Preço alvo</label>
             <input name="target" type="number" step="0.01" defaultValue={current?.target ?? ""} required />
             <label>Notas</label>
