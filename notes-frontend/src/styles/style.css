@@ -290,6 +290,11 @@ body{
 .searchbar{ width:100%; display:flex; justify-content:center; }
 .search-block{ width:min(900px, 100%); }
 
+/* variação: (visual) */
+.watchlist-table td.var { white-space: nowrap; font-weight: 600; }
+.watchlist-table td.var.positive { color: var(--success); }
+.watchlist-table td.var.negative { color: var(--danger); }
+
 
 /* Remover sublinhado de botões (links estilizados como botão também) */
 .btn,
