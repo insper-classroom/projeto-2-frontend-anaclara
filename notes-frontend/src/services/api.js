@@ -1,5 +1,4 @@
-// src/services/api.js
-const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000/api";
+const BASE = import.meta.env.VITE_API_BASE || "https://projeto-2-backend-anaclara.onrender.com";
 
 async function http(path, opts) {
   const res = await fetch(`${BASE}${path}`, {
@@ -19,7 +18,6 @@ async function http(path, opts) {
   return res.json();
 }
 
-// ---- Stocks (já existiam) ----
 export async function searchSymbols(q, limit = 10) {
   if (!q?.trim()) return { items: [] };
   return http(`/stocks/search?q=${encodeURIComponent(q)}&limit=${limit}`);
@@ -32,7 +30,6 @@ export async function getHistoryEOD(symbol, params = {}) {
   return http(`/stocks/${encodeURIComponent(symbol)}/history/eod?${qs}`);
 }
 
-// ---- Watchlist (NOVO / ajuste de campos) ----
 export async function listWatchlist() {
   return http(`/watchlist/`);
 }

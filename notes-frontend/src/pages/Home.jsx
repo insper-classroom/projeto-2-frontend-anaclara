@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import SearchBar from "../components/SearchBar.jsx";
 import SuggestionChips from "../components/SuggestionChips.jsx";
 import { Link } from "react-router-dom";
