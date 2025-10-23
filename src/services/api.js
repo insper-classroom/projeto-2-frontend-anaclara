@@ -83,5 +83,14 @@ export async function updateWatchItem(id, { symbol, targetPrice, target, notes }
 }
 
 export async function deleteWatchItem(id) {
-  return http(`/watchlist/${id}/`, { method: "DELETE" });
+  const res = await fetch(`${BASE}/watchlist/${id}/`, { method: "DELETE" });
+  if (!res.ok) {
+    // tenta extrair mensagem se existir
+    let msg = res.statusText;
+    try { const body = await res.json(); if (body?.detail) msg = body.detail; } catch {}
+    throw new Error(msg || `Erro ${res.status}`);
+  }
+  // 204 -> apenas retorna
+  return true;
 }
+
