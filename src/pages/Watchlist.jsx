@@ -1,151 +1,159 @@
-// src/pages/Watchlist.jsx
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  listWatchlist,
-  deleteWatchItem,   // <- usamos essa função; ela NÃO deve tentar json() num 204
-} from "../services/api";
+import { listWatchlist, deleteWatchItem, getDetails } from "../services/api.js";
 
-// util simples de formatação
-const fmtBRL = (v) =>
-  typeof v === "number"
-    ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-    : "—";
+// helper: bateu meta com base na direção
+function hitTarget(price, target, direction) {
+  if (price == null || target == null) return false;
+  const p = Number(price);
+  const t = Number(target);
+  if (Number.isNaN(p) || Number.isNaN(t)) return false;
 
-const fmtPct = (v) =>
-  typeof v === "number"
-    ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`
-    : "—";
+  const dir = (direction || "above").toLowerCase();
+  if (dir === "above") return p >= t; // alerta quando subir até/ultrapassar a meta
+  if (dir === "below") return p <= t; // alerta quando cair até/abaixo da meta
 
-// regra: destacar quando preço atual atingir/ultrapassar a meta.
-// (não depende mais de direção; mantém a lógica neutra que combinamos)
-function hitTarget(current, target) {
-  if (current == null || target == null) return false;
-  // se a meta é maior que o preço atual, só "bate" quando current >= target
-  // se a meta é menor que o preço atual, só "bate" quando current <= target
-  return target >= current ? current >= target : current <= target;
+  // fallback heurístico (se vier algum valor inesperado):
+  return t >= p ? p >= t : p <= t;
 }
+
 
 export default function Watchlist() {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [quotes, setQuotes] = useState({}); // { [symbol]: { price, change_pct } }
+  const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    (async () => {
+    let cancel = false;
+
+    async function load() {
+      setLoading(true);
+      setErr("");
       try {
-        setLoading(true);
         const data = await listWatchlist();
-        setItems(Array.isArray(data) ? data : data?.results ?? []);
+        if (cancel) return;
+        const rows = Array.isArray(data) ? data : [];
+        setItems(rows);
+
+        // Buscar preços/variação em paralelo (uma por símbolo)
+        const results = await Promise.allSettled(
+          rows.map(async (it) => {
+            const symbol = it.ticker || it.symbol;
+            const d = await getDetails(symbol);
+            return [symbol, { price: d?.price ?? null, change_pct: d?.change_pct ?? null }];
+          })
+        );
+        if (cancel) return;
+
+        const map = {};
+        for (const r of results) {
+          if (r.status === "fulfilled") {
+            const [sym, val] = r.value;
+            map[sym] = val;
+          }
+        }
+        setQuotes(map);
       } catch (e) {
-        setErr(e?.message || "Erro ao carregar a watchlist");
+        if (!cancel) setErr(e.message || "Falha ao carregar a watchlist.");
       } finally {
-        setLoading(false);
+        if (!cancel) setLoading(false);
       }
-    })();
+    }
+
+    load();
+    return () => {
+      cancel = true;
+    };
   }, []);
 
-  async function handleDelete(id) {
-    const ok = window.confirm("Tem certeza que deseja excluir esta meta?");
-    if (!ok) return;
+  async function remove(id) {
+    if (!confirm("Excluir este item?")) return;
     try {
-      // IMPORTANTE: a função deleteWatchItem deve apenas verificar res.ok (204) e não chamar res.json()
       await deleteWatchItem(id);
-      // atualiza a lista local
-      setItems((prev) => prev.filter((it) => it.id !== id));
+      setItems((prev) => prev.filter((i) => i.id !== id));
     } catch (e) {
-      alert("Falha ao excluir: " + (e?.message || "erro desconhecido"));
+      alert(`Falha ao excluir: ${e.message}`);
     }
   }
 
-  function handleEdit(row) {
-    // navega para tela de edição com o id da meta (seu Edit.jsx já trata isso)
-    navigate(`/editar/${encodeURIComponent(row.symbol)}`, {
-      state: { item: row }, // mantém compatibilidade com seu Edit.jsx
-    });
-  }
-
-  function handleDetails(row) {
-    navigate(`/detalhe/${encodeURIComponent(row.symbol)}`);
+  function openEdit(item) {
+    const symbol = item.ticker || item.symbol;
+    navigate(`/editar/${symbol}`, { state: { from: "watchlist", id: item.id, item } });
   }
 
   return (
-    <div className="page">
-      <div className="container">
-        <h1>Watchlist</h1>
+    <div className="page-wrapper">
+      <section className="page">
+        <h2 className="title">Watchlist</h2>
 
-        {loading && <p>Carregando…</p>}
-        {err && <p className="error">{err}</p>}
+        {loading && <p className="muted">Carregando…</p>}
+        {err && <p className="muted" style={{ color: "#b91c1c" }}>{err}</p>}
 
-        {!loading && items.length === 0 && <p>Nenhum item cadastrado.</p>}
+        <table className="watchlist-table">
+          <thead>
+            <tr>
+              <th>Símbolo</th>
+              <th>Preço Atual</th>
+              <th>Variação</th>
+              <th>Meta</th>
+              <th>Notas</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => {
+              const symbol = item.ticker || item.symbol;
+              const q = quotes[symbol] || {};
+              const price = typeof q.price === "number" ? q.price : null;
+              const changePct = typeof q.change_pct === "number" ? q.change_pct : null;
 
-        {!loading && items.length > 0 && (
-          <div className="card">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Símbolo</th>
-                  <th>Preço Atual</th>
-                  <th>Variação</th>
-                  <th>Meta</th>
-                  <th>Notas</th>
-                  <th style={{ textAlign: "right" }}>Ações</th>
+              // "bateu meta" quando preço atual >= meta (sem direção)
+              const hit = hitTarget(price, item.target_price, item.direction);
+
+
+              return (
+                <tr key={item.id} className={hit ? "hit" : ""}>
+                  <td className="symbol">{symbol}</td>
+
+                  <td className="price">
+                    {price != null ? `R$ ${price.toFixed(2)}` : "—"}
+                  </td>
+
+                  <td className={`var ${changePct == null ? "" : changePct >= 0 ? "positive" : "negative"}`}>
+                    {changePct != null ? `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%` : "—"}
+                  </td>
+
+
+                  <td>
+                    {item.target_price != null ? `R$ ${Number(item.target_price).toFixed(2)}` : "—"}
+                  </td>
+
+                  <td>{item.notes || "—"}</td>
+
+                  <td className="row-actions">
+                    <Link className="btn btn-secondary" to={`/detalhe/${symbol}`}>Detalhes</Link>
+                    <button className="btn" onClick={() => openEdit(item)}>Editar</button>
+                    <button className="btn danger" onClick={() => remove(item.id)}>Excluir</button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {items.map((row) => {
-                  // campos esperados do back/agg do front:
-                  // id, symbol, target_price, notes, quote_price, quote_change_pct
-                  const current = row.quote_price ?? row.currentPrice;
-                  const changePct =
-                    typeof row.quote_change_pct === "number"
-                      ? row.quote_change_pct * 100 // se veio em fração (0.013), vira %
-                      : row.quote_change_pct ?? row.changePct;
+              );
+            })}
 
-                  const target = row.target_price ?? row.targetPrice;
-                  const isHit = hitTarget(current, target);
+            {!loading && items.length === 0 && (
+              <tr>
+                <td colSpan={6} className="muted">Nenhum item na watchlist.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </section>
 
-                  return (
-                    <tr key={row.id || row.symbol}>
-                      <td>{row.symbol}</td>
-                      <td className={isHit ? "hit" : undefined}>
-                        {fmtBRL(current)}
-                      </td>
-                      <td className={changePct < 0 ? "neg" : "pos"}>
-                        {fmtPct(changePct)}
-                      </td>
-                      <td>{fmtBRL(target)}</td>
-                      <td>{row.notes || "—"}</td>
-                      <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                        <button className="btn ghost" onClick={() => handleDetails(row)}>
-                          Detalhes
-                        </button>
-                        <button className="btn" onClick={() => handleEdit(row)}>
-                          Editar
-                        </button>
-                        <button
-                          className="btn danger"
-                          onClick={() => handleDelete(row.id)}
-                          style={{ marginLeft: 8 }}
-                        >
-                          Excluir
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <div className="footer-bar">
-          <button className="btn light" onClick={() => navigate(-1)}>
-            Voltar
-          </button>
-        </div>
-      </div>
+      <footer className="page-actions">
+        <div className="left"><Link className="btn btn-secondary" to="/">Voltar</Link></div>
+        <div className="right" />
+      </footer>
     </div>
   );
 }
