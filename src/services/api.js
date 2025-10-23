@@ -80,6 +80,12 @@ export async function updateWatchItem(id, { symbol, targetPrice, target, notes, 
   });
 }
 
-export async function deleteWatchItem(id) {
-  return http(`/watchlist/${id}/`, { method: "DELETE" });
+export async function deleteWatchItem({ id, symbol }) {
+  if (id != null) {
+    return http(`/watchlist/${id}/`, { method: "DELETE" });
+  }
+  if (symbol) {
+    return http(`/watchlist/by-ticker?ticker=${encodeURIComponent(symbol)}`, { method: "DELETE" });
+  }
+  throw new Error("Faltou id ou symbol para excluir");
 }

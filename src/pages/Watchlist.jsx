@@ -17,7 +17,6 @@ function hitTarget(price, target, direction) {
   return t >= p ? p >= t : p <= t;
 }
 
-
 export default function Watchlist() {
   const [items, setItems] = useState([]);
   const [quotes, setQuotes] = useState({}); // { [symbol]: { price, change_pct } }
@@ -68,11 +67,23 @@ export default function Watchlist() {
     };
   }, []);
 
-  async function remove(id) {
-    if (!confirm("Excluir este item?")) return;
+  // 🚩 ALTERAÇÃO: receber o item inteiro, e deletar por id OU por ticker (fallback)
+  async function remove(item) {
+    const symbol = item.ticker || item.symbol;
+    const id = item.id;
+
+    if (!confirm(`Excluir ${symbol}?`)) return;
     try {
-      await deleteWatchItem(id);
-      setItems((prev) => prev.filter((i) => i.id !== id));
+      await deleteWatchItem({ id, symbol });
+      // Atualiza estado removendo por id quando houver, senão por ticker
+      setItems((prev) =>
+        prev.filter((i) => {
+          const sameId = (id != null) && i.id === id;
+          const sameTicker = (i.ticker || i.symbol) === symbol;
+          // remove o que corresponde ao id; se não tem id, remove pelo ticker
+          return id != null ? !sameId : !sameTicker;
+        })
+      );
     } catch (e) {
       alert(`Falha ao excluir: ${e.message}`);
     }
@@ -109,12 +120,10 @@ export default function Watchlist() {
               const price = typeof q.price === "number" ? q.price : null;
               const changePct = typeof q.change_pct === "number" ? q.change_pct : null;
 
-              // "bateu meta" quando preço atual >= meta (sem direção)
               const hit = hitTarget(price, item.target_price, item.direction);
 
-
               return (
-                <tr key={item.id} className={hit ? "hit" : ""}>
+                <tr key={item.id ?? symbol} className={hit ? "hit" : ""}>
                   <td className="symbol">{symbol}</td>
 
                   <td className="price">
@@ -125,7 +134,6 @@ export default function Watchlist() {
                     {changePct != null ? `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%` : "—"}
                   </td>
 
-
                   <td>
                     {item.target_price != null ? `R$ ${Number(item.target_price).toFixed(2)}` : "—"}
                   </td>
@@ -135,7 +143,9 @@ export default function Watchlist() {
                   <td className="row-actions">
                     <Link className="btn btn-secondary" to={`/detalhe/${symbol}`}>Detalhes</Link>
                     <button className="btn" onClick={() => openEdit(item)}>Editar</button>
-                    <button className="btn danger" onClick={() => remove(item.id)}>Excluir</button>
+
+                    {/* 🚩 ALTERAÇÃO: passar o item inteiro, não apenas o id */}
+                    <button className="btn danger" onClick={() => remove(item)}>Excluir</button>
                   </td>
                 </tr>
               );
