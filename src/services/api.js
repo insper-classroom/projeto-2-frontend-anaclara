@@ -1,6 +1,16 @@
 // api.js
-const BASE = (import.meta.env.VITE_API_BASE || "https://projeto-2-backend-anaclara.onrender.com").replace(/\/+$/, "");
-const API_PREFIX = (import.meta.env.VITE_API_PREFIX || "/api").replace(/^\/?/, "/").replace(/\/+$/, "");
+const RAW_BASE = import.meta.env.VITE_API_BASE || "https://projeto-2-backend-anaclara.onrender.com";
+const BASE = RAW_BASE.replace(/\/+$/, ""); // remove barras finais
+
+let API_PREFIX = (import.meta.env.VITE_API_PREFIX ?? "/api")
+  .toString()
+  .replace(/^\/?/, "/")
+  .replace(/\/+$/, "");
+
+// ✅ Se o BASE já termina com /api, não adicione prefixo de novo
+if (BASE.toLowerCase().endsWith("/api")) {
+  API_PREFIX = "";
+}
 
 function buildUrl(path) {
   const p = path.startsWith("/") ? path : `/${path}`;
@@ -8,7 +18,8 @@ function buildUrl(path) {
 }
 
 async function http(path, opts) {
-  const res = await fetch(buildUrl(path), {
+  const url = buildUrl(path);
+  const res = await fetch(url, {
     headers: { Accept: "application/json", ...(opts?.headers || {}) },
     ...opts,
   });
@@ -16,17 +27,14 @@ async function http(path, opts) {
   if (!res.ok) {
     let msg = res.statusText || "Erro de rede";
     try {
-      // tenta JSON
       const body = await res.clone().json();
-      msg =
-        body?.detail ??
-        Object.values(body || {})?.[0]?.[0] ??
-        JSON.stringify(body);
+      msg = body?.detail ??
+            Object.values(body || {})?.[0]?.[0] ??
+            JSON.stringify(body);
     } catch {
       try {
-        // fallback para texto/HTML
         const txt = await res.text();
-        if (txt) msg = msg === "OK" ? txt : msg; // preserva statusText quando fizer sentido
+        if (txt) msg = msg === "OK" ? txt : msg;
       } catch {}
     }
     throw new Error(msg);
@@ -34,6 +42,7 @@ async function http(path, opts) {
   return res.json();
 }
 
+// ---- seus endpoints (inalterados) ----
 export async function searchSymbols(q, limit = 10) {
   if (!q?.trim()) return { items: [] };
   return http(`/stocks/search?q=${encodeURIComponent(q)}&limit=${limit}`);
