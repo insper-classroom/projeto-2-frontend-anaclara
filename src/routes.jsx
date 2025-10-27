@@ -12,7 +12,7 @@ export default function RoutesConfig() {
       <Route path="/resultados" element={<Results />} />
       <Route path="/detalhe/:symbol" element={<Detail />} />
       <Route path="/watchlist" element={<Watchlist />} />
-      <Route path="/editar/:symbol" element={<Edit />} /> {/* NOVO */}
+      <Route path="/editar/:symbol" element={<Edit />} /> 
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

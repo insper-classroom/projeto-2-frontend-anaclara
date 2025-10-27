@@ -13,7 +13,7 @@ function hitTarget(price, target, direction) {
   if (dir === "above") return p >= t; // alerta quando subir até/ultrapassar a meta
   if (dir === "below") return p <= t; // alerta quando cair até/abaixo da meta
 
-  // fallback heurístico (se vier algum valor inesperado):
+  // fallback (se vier algum valor inesperado):
   return t >= p ? p >= t : p <= t;
 }
 
@@ -67,7 +67,7 @@ export default function Watchlist() {
     };
   }, []);
 
-  // 🚩 ALTERAÇÃO: receber o item inteiro, e deletar por id OU por ticker (fallback)
+  // receber o item inteiro, e deletar por id OU por ticker (fallback)
   async function remove(item) {
     const symbol = item.ticker || item.symbol;
     const id = item.id;
@@ -144,7 +144,6 @@ export default function Watchlist() {
                     <Link className="btn btn-secondary" to={`/detalhe/${symbol}`}>Detalhes</Link>
                     <button className="btn" onClick={() => openEdit(item)}>Editar</button>
 
-                    {/* 🚩 ALTERAÇÃO: passar o item inteiro, não apenas o id */}
                     <button className="btn danger" onClick={() => remove(item)}>Excluir</button>
                   </td>
                 </tr>

@@ -212,7 +212,7 @@ body{
 
 /*  Header  */
 .app-header{
-  height: var(--header-h);               /* antes: 64px */
+  height: var(--header-h);               
   display:flex; align-items:center;
   background:var(--primary); color:#fff;
   box-shadow:var(--shadow);
@@ -220,7 +220,7 @@ body{
 }
 /* logo MAIOR */
 .brand-logo.only-logo{
-  height: 56px;                          /* antes: 36px */
+  height: 56px;                         
   width: auto; object-fit: contain;
 }
 
@@ -232,7 +232,7 @@ body{
 }
 .page{ padding:18px 16px 8px; }
 
-/* Centralização horizontal (já existia) + vertical (NOVA) */
+/* Centralização horizontal + vertical*/
 .page.centered{ display:flex; justify-content:center; }
 .page.centered.vh-center{
   /* ocupa a janela inteira menos header e barra de ações */
@@ -278,7 +278,7 @@ body{
 .chips-wrap{ margin-top:12px; }
 .chips-center{ display:flex; flex-wrap:wrap; justify-content:center; }
 .chip{
-  padding:10px 16px;                    /* maior */
+  padding:10px 16px;                  
   font-weight:600; font-size:14px;
   background:#eef2f7; border:1px solid var(--border);
   box-shadow: 0 6px 14px rgba(2,14,46,.06);
